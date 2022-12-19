@@ -2,6 +2,7 @@
 SELECT 
 	tran_date, 
 	tran_ammt,
+    stat_cd,
 	SUM(tran_ammt) OVER (PARTITION BY tran_date) AS "total_transaction"
 FROM cards_ingest.tran_fact;
 
@@ -12,7 +13,8 @@ FROM cards_ingest.tran_fact;
 SELECT 
 	tran_date, 
 	tran_ammt,
-	RANK() OVER (ORDER BY tran_ammt),
+    stat_cd,
+	RANK() OVER (PARTITION BY tran_date ORDER BY tran_ammt DESC),
 	SUM(tran_ammt) OVER (PARTITION BY tran_date) AS "total_transaction"
 FROM cards_ingest.tran_fact;
 
@@ -24,7 +26,8 @@ FROM (
 	SELECT
 		tran_date, 
 		tran_ammt,
-		RANK() OVER (ORDER BY tran_ammt DESC) AS rnk1,
+        stat_cd,
+		RANK() OVER (PARTITION BY tran_date ORDER BY tran_ammt DESC) AS rnk1,
 		SUM(tran_ammt) OVER (PARTITION BY tran_date) AS "total_transaction"
 	FROM cards_ingest.tran_fact
 ) AS T
@@ -35,8 +38,8 @@ WHERE rnk1 = 2;
 
 SELECT * 
 FROM cards_ingest.cust_dim_details AS cd
-JOIN cards_ingest.tran_fact AS tf ON tf.cust_id = cd.cust_id
-WHERE tran_date BETWEEN start_date AND end_date
+FULL JOIN cards_ingest.tran_fact AS tf ON tf.cust_id = cd.cust_id
+WHERE tran_date BETWEEN cd.start_date AND  cd.end_date;
 
 
 
@@ -51,11 +54,11 @@ FROM (
 	SELECT
 		tf.tran_date, 
 		tf.tran_ammt,
-		RANK() OVER (ORDER BY tran_ammt DESC) AS rnk1,
+		RANK() OVER (PARTITION BY tran_date ORDER BY tran_ammt DESC) AS rnk1,
 		SUM(tran_ammt) OVER (PARTITION BY tran_date) AS "total_transaction"
 	FROM cards_ingest.tran_fact AS tf
-    JOIN cards_ingest.cust_dim_details AS cd ON tf.cust_id = cd.cust_id
-    WHERE tran_date BETWEEN start_date AND end_date
+    FULL JOIN cards_ingest.cust_dim_details AS cd ON tf.cust_id = cd.cust_id
+    WHERE tran_date BETWEEN cd.start_date AND cd.end_date
 ) AS T
 WHERE rnk1 = 2;
 
@@ -69,7 +72,7 @@ SELECT
         tf.stat_cd,
         tf.cust_id,
         cd.state_cd,
-		RANK() OVER (ORDER BY tran_ammt DESC) AS rnk1,
+		RANK() OVER (PARTITION BY tran_date ORDER BY tran_ammt DESC) AS rnk1,
 		SUM(tran_ammt) OVER (PARTITION BY tran_date) AS "total_transaction",
         cd.zip_cd,
         CASE 
@@ -80,7 +83,7 @@ SELECT
             ELSE 'good data'
         END AS stae_cd_status
 FROM cards_ingest.tran_fact AS tf
-JOIN cards_ingest.cust_dim_details AS cd ON tf.cust_id = cd.cust_id
-WHERE tran_date BETWEEN start_date AND end_date;
+FULL JOIN cards_ingest.cust_dim_details AS cd ON tf.cust_id = cd.cust_id
+WHERE tran_date BETWEEN cd.start_date AND cd.end_date;
 
 
