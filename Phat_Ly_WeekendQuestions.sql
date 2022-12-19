@@ -74,7 +74,8 @@ SELECT
         cd.zip_cd,
         CASE 
             WHEN stat_cd !=  state_cd THEN 'data issues'
-            WHEN stat_cd IS NULL AND state_cd IS NULL THEN 'data issues'
+            WHEN stat_cd IS NULL THEN 'data issues'
+            WHEN state_cd IS NULL THEN 'data issues'
             ELSE 'good data'
         END AS stae_cd_status
 FROM cards_ingest.tran_fact AS tf
