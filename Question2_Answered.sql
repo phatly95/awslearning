@@ -77,7 +77,7 @@ FROM org.Worker as w
 SELECT 
     CONCAT(w.first_name, ' ', w.last_name) AS "Name",
     w.department AS "Department",
-    LAG(w.first_name,1) OVER (ORDER BY w.department)
+    LAG(w.first_name,1) OVER (ORDER BY w.department) AS "report_to"
 FROM org.Worker as w
 --8.SQL query to find the department with highest number of employees.
 SELECT 
